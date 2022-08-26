@@ -4,40 +4,58 @@ import AboutUs from "./AboutUs";
 import ShopPage from "./ShopPage";
 import WelcomePage from "./WelcomePage";
 import GlobalStyles from "../styles/GlobalStyles";
-
+import NavBar from "./NavBar";
+import AllCompanies from "./AllCompanies";
+import AllCategories from "./AllCategories";
+import {CompanyPage} from "./CompanyPage"; 
+import ItemPage from "./ItemPage";
+import Checkout from "./Checkout";
+import SideBar from "./SideBar";
+import OrderHistory from "./OrderHistory";
 
 const App = () => {
-  return (
-    <BrowserRouter>
-    <GlobalStyles/>
-      <Switch>
-        <Route exact path="/">
-          <WelcomePage />
-        </Route>
-        <Route exact path="/shop">
-          <ShopPage />
-        </Route>
-        <Route exact path="/shop/items/:itemId">
-          itemid
-        </Route>
-        <Route exact path="/checkout">
-          checkout
-        </Route>
-        <Route exact path="/shop/categories/:categoryId">
-          catagory
-        </Route>
-        <Route exact path="/company/:companyId">
-          company
+ return (
+   <BrowserRouter>
+   <GlobalStyles/>
+   <NavBar/>
+   <SideBar/>
+     <Switch>
+       <Route exact path="/">
+         <WelcomePage />
+       </Route>
+       <Route exact path="/shop">
+         <ShopPage />
+       </Route>
+       <Route exact path="/shop/items/:itemId">
+         <ItemPage />
+       </Route>
+       <Route exact path ="/companies">
+         <AllCompanies/>
+       </Route>
+       <Route exact path="/companies/:companyId">
+         <CompanyPage/>
+       </Route>
+       <Route exact path="/all-categories">
+         <AllCategories/>
+       </Route>
+       <Route exact path="/shop/categories/:categoryId">
+         catagory
+       </Route>
+       <Route exact path="/checkout">
+         <Checkout/>
+       </Route>
+       <Route exact path="/confirmation">
+          confirmation page
         </Route>
         <Route exact path="/previous-purchases">
-          previous purchases
-        </Route>
-        <Route exact path="/about-us">
-          <AboutUs />
-        </Route>
-      </Switch>
-    </BrowserRouter>
-  );
+          <OrderHistory/>
+       </Route>
+       <Route exact path="/about">
+         <AboutUs />
+       </Route>
+     </Switch>
+   </BrowserRouter>
+ );
 };
-
+ 
 export default App;

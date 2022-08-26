@@ -1,7 +1,8 @@
 //Importing everything from package.json
-import { useContext } from "react";
 import styled from "styled-components";
-import { NavLink } from "react-router-dom";
+import axios from "axios";
+import { NavLink, useParams } from "react-router-dom";
+import { useEffect, useContext, useState } from "react";
 
 //Importing all useContexts
 import { ItemContext } from "../context/Context";
@@ -9,43 +10,58 @@ import { ItemContext } from "../context/Context";
 //importing icons
 import { Icon } from "react-icons-kit";
 import { ic_add_shopping_cart } from "react-icons-kit/md/ic_add_shopping_cart";
+import { checkmark } from "react-icons-kit/icomoon/checkmark";
 
-const ShopPage = () => {
-  const { Items, addToCart } = useContext(ItemContext);
+export const CompanyPage = () => {
+  const { companyId } = useParams();
+  const { addToCart, setCompanyInfo, companyProducts, setCompanyProducts } =
+    useContext(ItemContext);
+
+  useEffect(() => {
+    axios
+      .get(`/api/companies/${companyId}`)
+      .then((res) => {
+        console.log(res);
+        setCompanyInfo(res.data.companyInfo);
+        setCompanyProducts(res.data.companyProducts);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, []);
 
   return (
     <>
-      {Items ? (
+      {companyProducts ? (
         <Wrapper>
-          {/* <SideBar /> */}
-          {/* The grid container houses all the items (GridItem) */}
           <GridContainer>
-            {Items.map((item) => {
+            {companyProducts.map((product) => {
               return (
                 <>
-                  <GridItem to={`/shop/items/${item._id}`}>
-                    {/* ItemHead is the top half of the item.  */}
+                  <GridItem to={`/shop/items/${product._id}`}>
                     <ItemHead>
-                      <ItemImage src={item.imageSrc} />
+                      <ItemImage src={product.imageSrc} />
                     </ItemHead>
-                    {/* ItemBody contains the Items information */}
                     <ItemBody>
                       <ItemDescription>
                         <ItemCaption>Product: </ItemCaption>
-                        <ItemName>{item.name}</ItemName>
+                        <ItemName>{product.name}</ItemName>
                       </ItemDescription>
                       <ItemDescription>
                         <ItemCaption>Body Location: </ItemCaption>
-                        <ItemLocation>{item.body_location}</ItemLocation>
+                        <ItemLocation>{product.body_location}</ItemLocation>
                       </ItemDescription>
                       <ItemDescription>
                         <ItemCaption>Category: </ItemCaption>
-                        <ItemCategory>{item.category}</ItemCategory>
+                        <ItemCategory>{product.category}</ItemCategory>
                       </ItemDescription>
-                      {/* ButtonSideDiv is where the cart and price are */}
                       <ButtonSideDiv>
-                        <ItemPrice>{item.price}</ItemPrice>
-                        <AddToCartButton onClick={(e) => addToCart(e, item)}>
+                        <ItemPrice>{product.price}</ItemPrice>
+                        <AddToCartButton
+                          onClick={(e) => {
+                            addToCart(e, product);
+                          }}
+                        >
                           <Icon size={25} icon={ic_add_shopping_cart} />
                         </AddToCartButton>
                       </ButtonSideDiv>
@@ -65,10 +81,10 @@ const ShopPage = () => {
 
 const Wrapper = styled.div`
   position: relative;
-  left: 10vw;
-  top: 7.79vh;
   width: 90vw;
   height: 100%;
+  left: 10vw;
+  top: 8vh;
   display: flex;
   justify-content: space-between;
 `;
@@ -83,8 +99,8 @@ const GridContainer = styled.div`
 const GridItem = styled(NavLink)`
   color: black;
   text-decoration: none;
-  width: 320px;
-  height: 500px;
+  width: 450px;
+  height: 550px;
   margin: 15px auto;
   border-radius: 25px;
   transition: 0.5s ease-in-out;
@@ -96,7 +112,7 @@ const GridItem = styled(NavLink)`
     cursor: pointer;
   }
 `;
-/* comment here */
+
 const ItemHead = styled.div`
   display: flex;
   justify-content: center;
@@ -114,10 +130,11 @@ const ItemHead = styled.div`
 `;
 
 const ItemImage = styled.img`
-  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   left: 0;
   margin-top: 5px;
-  margin-left: 50px;
 `;
 
 const ItemBody = styled.div`
@@ -126,10 +143,10 @@ const ItemBody = styled.div`
   justify-content: space-around;
   width: 100%;
   height: 50%;
-  padding: 15px;
+  padding: 25px;
   overflow: hidden;
+  border-top: 1px solid lightgray;
 `;
-
 
 const ItemDescription = styled.div`
   display: flex;
@@ -138,16 +155,26 @@ const ItemDescription = styled.div`
 `;
 const ItemCaption = styled.div`
   font-size: 1.2rem;
+  display: inline-block;
+  text-align: right;
 `;
 
 const ItemName = styled.h3`
   padding: 10px;
+  display: inline-block;
+  text-align: left;
+  margin-left: 50px;
 `;
 const ItemCategory = styled.h3`
   padding: 5px;
+  display: inline-block;
+  text-align: left;
+  margin-left: 45px;
 `;
 const ItemLocation = styled.h3`
   padding: 5px;
+  display: inline-block;
+  text-align: left;
 `;
 const ItemPrice = styled.h4`
   padding: 0 5px;
@@ -239,5 +266,3 @@ const AlternateDiv = styled.div`
   font-size: 50px;
   z-index: 2;
 `;
-
-export default ShopPage;
