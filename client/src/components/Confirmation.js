@@ -1,96 +1,87 @@
-//Importing everything from package.json
-import styled from "styled-components";
-import axios from "axios";
-import { NavLink, useParams } from "react-router-dom";
-import { useEffect, useContext } from "react";
+import { useState, useEffect, useContext } from "react"; // importing from react
+import styled from "styled-components"; // importing from styled-components
+import axios from "axios"; // importing from axios
 
-//Importing all useContexts
-import { ItemContext } from "../context/Context";
-
-//importing icons
-import { Icon } from "react-icons-kit";
-import {chevronCircleRight} from 'react-icons-kit/fa/chevronCircleRight'
-
+import { ItemContext } from "../context/Context"; // importing from ItemContext
 import { ErrorPage } from "./ErrorPage";
 
-export const CompanyPage = () => {
-  const { companyId } = useParams();
-  const { setCompanyInfo, companyProducts, setCompanyProducts, error, setError } =
-    useContext(ItemContext);
+// Confirmation page
+const Confirmation = () => {
+  const { error, setError } = useContext(ItemContext);
 
+  const [confirmation, setConfirmation] = useState(null);
   useEffect(() => {
-    axios
-      .get(`/api/companies/${companyId}`)
+    axios("/api/orderHistory")
       .then((res) => {
-        console.log(res);
-        setCompanyInfo(res.data.companyInfo);
-        setCompanyProducts(res.data.companyProducts);
+        const newOrder = res.data.data[res.data.data.length - 1];
+        setConfirmation(newOrder);
       })
       .catch((err) => {
         setError(err);
       });
-  }, []);
+  }, [confirmation]);
 
   return (
     <>
-      {companyProducts ? (
-        <Wrapper>
-          <BackgroundImage></BackgroundImage>
-
-          <GridContainer>
-            {companyProducts.map((product) => {
-              return (
-                <>
-                {
-                  product.numInStock > 0 ? (
-                    <>
-                  <GridItem to={`/shop/items/${product._id}`}>
+      <Wrapper>
+        <BackgroundImage></BackgroundImage>
+        {confirmation ? (
+          <ProductWrapper>
+            <Message>
+              <MessageText>
+                Your order has been placed successfully!
+              </MessageText>
+              <MessageText>
+                The order number is {confirmation.orderId}!
+              </MessageText>
+              <GiftImage src="https://media.giphy.com/media/3o7WICvWEiTBSP3U8o/giphy.gif" />
+              <MessageText>
+                We will send you an email with the order details and instructions shortly . 
+              </MessageText>
+              <MessageText>
+              Please keep an eye on your Inbox 📥 and Spam folder for any updates.
+              </MessageText>
+              <MessageText>
+                Thank you for shopping with us!
+              </MessageText>
+            </Message>
+            <ProductContainer>
+              {confirmation.data.map((element) => {
+                return (
+                  <ProductDetails key={element._id}>
                     <ItemHead>
-                      <ItemImage src={product.imageSrc} />
+                      <ItemImage src={element.imageSrc} />
                     </ItemHead>
                     <ItemBody>
                       <ItemDescription>
                         <ItemCaption>Product: </ItemCaption>
-                        <ItemName>{product.name}</ItemName>
+                        <ItemName>{element.name}</ItemName>
                       </ItemDescription>
                       <ItemDescription>
                         <ItemCaption>Body Location: </ItemCaption>
-                        <ItemLocation>{product.body_location}</ItemLocation>
+                        <ItemLocation>{element.body_location}</ItemLocation>
                       </ItemDescription>
                       <ItemDescription>
                         <ItemCaption>Category: </ItemCaption>
-                        <ItemCategory>{product.category}</ItemCategory>
+                        <ItemCategory>{element.category}</ItemCategory>
                       </ItemDescription>
-                      <ButtonSideDiv>
-                        <ItemPrice>{product.price}</ItemPrice>
-                        <AddToCartButton>
-                         <Icon size={25} icon={chevronCircleRight} style={{color: "black"}}/>
-                        </AddToCartButton>
-                      </ButtonSideDiv>
+                      <ItemPrice>{element.price}</ItemPrice>
                     </ItemBody>
-                  </GridItem>
-                </> 
-                  ) : (
-                    <></>
-                  )
-                } 
-                </>
-               
-               
-              );
-            })}
-          </GridContainer>
-        </Wrapper>
-      ) : (
-        <AlternateDiv>
-        <ImageHere src="https://media.giphy.com/media/JF70qeolvPS0ph52ZY/giphy.gif" />
-      </AlternateDiv>
-      )}
+                  </ProductDetails>
+                );
+              })}
+            </ProductContainer>
+          </ProductWrapper>
+        ) : (
+          <AlternateDiv>
+            <ImageHere src="https://media.giphy.com/media/JF70qeolvPS0ph52ZY/giphy.gif" />
+          </AlternateDiv>
+        )}
+      </Wrapper>
     </>
   );
 };
 
-// Styled Components
 const Wrapper = styled.div`
   position: relative;
   width: 90vw;
@@ -100,6 +91,47 @@ const Wrapper = styled.div`
   display: flex;
   justify-content: space-between;
 `;
+
+const ProductWrapper = styled.div`
+  position: relative;
+  width: 90vw;
+  height: 100%;
+  display: flex;
+`;
+
+const Message = styled.div`
+  position: relative;
+  width: 50vw;
+  height: 100%;
+  top: 3vh;
+  border: 1px solid black;
+  border-radius: 25px;
+  background-color: black;
+  color: white;
+  margin: 30px;
+  padding: 20px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  flex-direction: column;
+  font-family: var(--quaternary-font-family);
+`;
+
+const MessageText = styled.h1`
+  font-family: var(--quaternary-font-family);
+  margin-top: 10px;
+  margin-bottom: 10px;
+`;
+
+const GiftImage = styled.img``;
+
+const ProductContainer = styled.div`
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  margin-left: 5vw;
+`;
+
 const BackgroundImage = styled.div`
   background-image: url("https://i.pinimg.com/736x/82/6a/95/826a95fde43be06c60b5c1f5349587c3.jpg");
   background-repeat: repeat;
@@ -110,48 +142,17 @@ const BackgroundImage = styled.div`
   position: absolute;
   z-index: -5;
   width: 100%;
-  height: 3000px;
+  height: 2000px;
   top: -5vh;
   /* left: 10vw; */
 `;
 
-const GridContainer = styled.div`
-  width: 90vw;
-  display: grid;
-  grid-template-columns: auto auto auto;
-  padding: 10px;
-  /* background-color: whitesmoke; */
-  background-color: transparent;
-  /* height: 100%; */
-`;
-const GridItem = styled(NavLink)`
-  color: black;
-  text-decoration: none;
-  background-color: white;
-  width: 450px;
-  height: 500px;
-  margin: 15px auto;
-  /* border: 4px solid black; */
-  border-radius: 25px;
-  transition: 0.5s ease-in-out;
-  box-shadow: 2px 2px 2px 2px rgba(0, 0, 0, 0.1);
-
-  animation: scaleIn 1s ease-in-out;
-
-  @keyframes scaleIn {
-    from {
-      transform: translateY(200%);
-    }
-    to {
-      transform: translateY(0%);
-    }
-  }
-
-  &:hover {
-    box-shadow: 2px 6px 2px 2px rgba(0, 0, 0, 0.3);
-    transform: scale(1.05);
-    cursor: pointer;
-  }
+const ProductDetails = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 20vw;
+  height: 50vh;
 `;
 
 const ItemHead = styled.div`
@@ -160,6 +161,7 @@ const ItemHead = styled.div`
   align-items: center;
   position: relative;
   height: 252px;
+  width: 400px;
   background: #fa782e;
   /* Old browsers */
   background: white;
@@ -185,8 +187,8 @@ const ItemBody = styled.div`
   justify-content: space-around;
   background-color: black;
   border-radius: 0 0 25px 25px;
-  width: 100%;
-  height: 50%;
+  height: 252px;
+  width: 400px;
   padding: 15px;
   overflow: hidden;
   color: white;
@@ -224,7 +226,7 @@ const ItemPrice = styled.h4`
   padding: 0 5px;
   display: inline-block;
 
-  width: auto;
+  width: 100px;
   height: 38px;
 
   background-color: #6ab070;
@@ -271,47 +273,17 @@ const ItemPrice = styled.h4`
   }
 `;
 
-const ButtonSideDiv = styled.div`
-  position: relative;
-  display: flex;
-  justify-content: space-between;
-  margin-top: 20px;
-  /* align-items: flex-start; */
-  width: 100%;
-  /* height: 50px; */
-  /* padding-left: 50px; */
-
-  align-items: center;
-`;
-
-const AddToCartButton = styled.button`
-  /* margin: 10px; */
-  background-color: white;
-  color: white;
-  width: 50px;
-  border: none;
-  padding: 5px;
-  margin-left: 25%;
-  border-radius: 5px;
-  font-size: 20px;
-  font-weight: bold;
-  &:hover {
-    box-shadow: 2px 2px 2px 2px rgba(0, 0, 0, 0.2);
-    transform: scale(1.1);
-    cursor: pointer;
-  }
-`;
-
 const AlternateDiv = styled.div`
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   font-size: 50px;
-  z-index: 2;
 `;
 
 const ImageHere = styled.img`
   width: 50vw;
   height: auto;
-`
+`;
+
+export default Confirmation;

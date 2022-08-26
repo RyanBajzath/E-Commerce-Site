@@ -1,29 +1,43 @@
 // this page will show the indivdual items information after being clicked on/
-import styled from "styled-components";
+import styled from "styled-components"; // styled-components
+import { useEffect, useContext } from "react"; // useEffect, useContext
+import { useParams } from "react-router-dom"; // useParams
 import axios from "axios";
-import React, { useEffect, useState } from "react";
-import { useContext } from "react";
-import { Redirect, useParams } from "react-router-dom";
 
+import { ErrorPage } from "./ErrorPage";
+
+// Importing all useContexts
 import { ItemContext } from "../context/Context";
 
+// Individual item page
 const ItemPage = () => {
-  const { singleItem, setSingleItem, company, setCompany, buttonPhrase, addToCart } = useContext(ItemContext);
+  // getting all items from context
+  const {
+    singleItem,
+    setSingleItem,
+    company,
+    setCompany,
+    addToCart,
+    error,
+    setError,
+  } = useContext(ItemContext);
 
+  // getting the item id from the url
   const { itemId } = useParams();
 
+  // getting the item from the database based on the ItemId clicked on
   useEffect(() => {
     axios
       .get(`/api/shop/items/${itemId}`)
       .then((res) => {
-        // console.log("inside single item",res);
         setSingleItem(res.data.data);
       })
       .catch((err) => {
-        console.log(err);
+        setError(err);
       });
   }, [itemId]);
 
+  // getting the company from the database based on the ItemId clicked on
   useEffect(() => {
     axios
       .get(`/api/companies/${singleItem.companyId}`)
@@ -32,96 +46,120 @@ const ItemPage = () => {
         setCompany(res.data.companyInfo);
       })
       .catch((err) => {
-        console.log(err);
+        setError(err);
       });
   }, [singleItem.companyId]);
 
   return (
     //1st step fetch the data of the item based on the :param (item id)
     //2nd step is to render it.
-    <Wrapper>
-      {singleItem && company ? (
-        <MainWrapper>
-          <LeftDiv>
-            <ItemImage src={singleItem.imageSrc} />
-          </LeftDiv>
-          <RightDiv>
-            <ItemName>{singleItem.name}</ItemName>
-            <CompanyUrl href={company.url} target="_blank">
-              <ItemCompanyName>
-                {company.name}, {company.country}
-              </ItemCompanyName>
-            </CompanyUrl>
-            <ItemCategory>
-              {singleItem.category}/{singleItem.body_location}
-            </ItemCategory>
-            <ItemPrice>{singleItem.price}</ItemPrice>
-            <AddToCart onClick={addToCart}>{buttonPhrase}</AddToCart>
-          </RightDiv>
-        </MainWrapper>
-      ) : (
-        <AlternateDiv>Loading.....</AlternateDiv>
-      )}
-    </Wrapper>
+
+    <>
+      <Wrapper>
+        <BackgroundImage>
+          {singleItem && company ? (
+            <MainWrapper>
+              <LeftDiv onClick={(e) => addToCart(e, singleItem)}>
+                <InstructionImage src="https://media.giphy.com/media/PbnHWUeWBb2QNqFAoA/giphy.gif" />
+                <ItemImage src={singleItem.imageSrc} />
+              </LeftDiv>
+              <RightDiv>
+                <ItemName>{singleItem.name}</ItemName>
+                <CompanyUrl href={company.url} target="_blank">
+                  <ItemCompanyName>
+                    {company.name}, {company.country}
+                  </ItemCompanyName>
+                </CompanyUrl>
+                <ItemCategory>
+                  {singleItem.category}/{singleItem.body_location}
+                </ItemCategory>
+                <ItemPrice>{singleItem.price}</ItemPrice>
+              </RightDiv>
+            </MainWrapper>
+          ) : (
+            <AlternateDiv>
+              <ImageHere src="https://media.giphy.com/media/JF70qeolvPS0ph52ZY/giphy.gif" />
+            </AlternateDiv>
+          )}
+        </BackgroundImage>
+      </Wrapper>
+    </>
   );
 };
 
 const Wrapper = styled.div`
-  position: absolute;
-  width: 65vw;
-  left: 20vw;
+  position: relative;
+  width: 100%;
+  left: 10vw;
   height: 30vh;
-  top: 20vh;
-`
-
-
-const CompanyUrl = styled.a`
-  text-decoration: none;
-  color: black;
 `;
-const AddToCart = styled.button`
-  border: none;
-  width: 300px;
-  height: 40px;
-  background: #ffab44;
-  color: white;
-  font-size: 25px;
-  border-radius: 5px;
-  cursor: pointer;
+
+const BackgroundImage = styled.div`
+  background-image: url("https://i.pinimg.com/736x/82/6a/95/826a95fde43be06c60b5c1f5349587c3.jpg");
+  background-repeat: repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 1200px;
+  width: 2000px;
 `;
 
 const MainWrapper = styled.div`
-  height: 50vh;
+  height: 30vh;
   display: flex;
-  margin-top: 50px;
-  border-radius: 10px;
-  box-shadow: 2px 2px 4px 2px rgba(0, 0, 0, 0.3);
+  position: absolute;
+  top: 35vh;
+  left: 30vh;
 `;
-const LeftDiv = styled.div`
-  width: 390px;
+
+const InstructionImage = styled.img`
+  position: relative;
+  width: 10vw;
+  left: -7vw;
+  top: -10vh;
+  height: auto;
+  padding: 20px;
+  z-index: 5;
+`;
+
+const LeftDiv = styled.button`
+  width: 300px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  background-color: white;
+  border-radius: 10px 0 10px 10px;
+  border-left: 4px solid black;
+  border-top: 4px solid black;
+  border-bottom: 4px solid black;
+  cursor: pointer;
+  transition: 0.5s ease;
+
+  &:hover {
+    transform: scale(1.05);
+  }
+
+  &:active {
+    box-shadow: 0 5px #666;
+    transform: translateY(4px);
+  }
 `;
 
 const ItemImage = styled.img`
-  width: 320px;
-`;
-const ItemPrice = styled.h4`
-  font-size: 30px;
-  font-weight: 400;
-  font-style: italic;
-  margin-bottom: 5px;
+  width: 200px;
+  position: absolute;
 `;
 
 const RightDiv = styled.div`
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  background-color: #fff3e1;
-  width: 650px;
-  padding-left: 20px;
+  justify-content: space-around;
+  background-color: black;
+  color: white;
+  width: 30vw;
+  padding: 20px;
+  border-radius: 10px 10px 10px 0;
 `;
 
 const ItemName = styled.h2`
@@ -129,9 +167,23 @@ const ItemName = styled.h2`
   font-weight: 300;
   font-size: 30px;
 `;
+
+const CompanyUrl = styled.a`
+  text-decoration: none;
+  color: white;
+`;
+
+const ItemPrice = styled.h4`
+  font-size: 30px;
+  font-weight: 400;
+  font-style: italic;
+  margin-bottom: 5px;
+`;
+
 const ItemCategory = styled.p`
   margin-bottom: 50px;
 `;
+
 const ItemCompanyName = styled.p`
   font-size: 20px;
 
@@ -147,6 +199,13 @@ const AlternateDiv = styled.div`
   left: 50%;
   transform: translate(-50%, -50%);
   font-size: 50px;
-`
+`;
+
+const ImageHere = styled.img`
+  position: relative;
+  margin-top: 40vh;
+  width: 50vw;
+  height: auto;
+`;
 
 export default ItemPage;

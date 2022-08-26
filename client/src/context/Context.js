@@ -1,101 +1,86 @@
-import { createContext, useState, useEffect } from "react";
+import { createContext, useState, useEffect } from "react"; // import from react
+import axios from "axios"; // import from axios
 
-import axios from "axios";
+export const ItemContext = createContext(); // creating a context
 
-export const ItemContext = createContext();
-
+// creating a provider
 export const ItemProvider = ({ children }) => {
-  const [Items, setItems] = useState([]);
-  const [singleItem, setSingleItem] = useState([]);
 
-  const [companies, setCompanies] = useState([]);
-  const [companyInfo, setCompanyInfo] = useState([]);
-  const [companyProducts, setCompanyProducts] = useState([]);
+  // states here:
+  const [Items, setItems] = useState([]); // state to capture the all items
+  const [singleItem, setSingleItem] = useState([]); // state to capture the single item
 
-  const [ItemNumber, setItemNumber] = useState(0);
-  const [cart, setCart] = useState([]);
-  const [orderHistory, setOrderHistory] = useState(null);
+  const [companies, setCompanies] = useState([]); // state to capture the all companies
+  const [companyInfo, setCompanyInfo] = useState([]); // state to capture the single company
+  const [companyProducts, setCompanyProducts] = useState([]); // state to capture the all products of the company
 
-  const [company, setCompany] = useState(null);
-  const [buttonPhrase, setButtonPhrase] = useState("Add to Cart");
+  const [ItemNumber, setItemNumber] = useState(0); // state to capture the number of items in the cart
+  const [cart, setCart] = useState([]); // state to capture the items in the cart
+  const [orderHistory, setOrderHistory] = useState(null); // state to capture the orders of the user
 
-  const [error, setError] = useState(false);
+  const [company, setCompany] = useState(null); // state to capture the company of the item
 
+  const [error, setError] = useState(false); // state to capture the error
+
+  // getting the all companies from the database
   useEffect(() => {
     axios
       .get("/api/companies")
       .then((res) => {
-        // console.log(res);
         setCompanies(res.data.data);
       })
       .catch((err) => {
-        console.log(err);
+        setError(err);
       });
   }, []);
 
+  // getting the all items from the database
   useEffect(() => {
     axios
       .get("/api/items")
       .then((res) => {
-        // console.log(res);
         setItems(res.data.data);
       })
       .catch((err) => {
-        console.log(err);
+        setError(err);
       });
   }, []);
 
-  const addItemNumber = (e) => {
-    e.preventDefault();
-    setItemNumber(ItemNumber + 1);
-  };
+  console.log("all items in the provider: ", Items);
 
+  let temporaryArray = []; // temporary array to store the items in the cart
+
+  // for the post method to add the item to the cart in mongodb
   const addToCart = (e, items) => {
+
     e.preventDefault();
-    addItemNumber(e);
+    e.stopPropagation();
 
-    // console.log("inside cart",cart);
-    setCart([...cart, items]);
-    setButtonPhrase("Added to Cart");
+    temporaryArray.push(items);
+    setCart(temporaryArray);
 
-    axios({
-      method: "POST",
-      url: "/api/cart",
-      data: {
-        _id: items._id,
-        name: items.name,
-        price: items.price,
-        imageSrc: items.imageSrc,
-        body_location: items.body_location,
-        category: items.category,
-        companyId: items.companyId,
-      },
-    })
-      .then((res) => {
-        // console.log(res);
+    // sending the item to the database
+      axios({
+        method: "POST",
+        url: "/api/cart",
+        data: {
+          _id: items._id,
+          name: items.name,
+          price: items.price,
+          imageSrc: items.imageSrc,
+          body_location: items.body_location,
+          category: items.category,
+          companyId: items.companyId,
+        },
       })
-      .catch((err) => {
-        console.log(err);
-      });
+        .then((res) => {
+          return;
+        })
+        .catch((err) => {
+          setError(err);   
+        });
   };
 
-  // const removeFromCart = (e, item) => {
-  //   e.preventDefault();
-  //   setCart(cart.filter((cartItem) => cartItem._id !== item._id));
-  //   axios({
-  //     method: "delete",
-  //     url: `/api/cart/${item._id}`,
-  //   })
-  //   .catch((err) => {
-  //     console.log(err);
-  //   })
-  //   .then((res) => {
-  //     console.log(res);
-  // })
-  // }
-
-  // console.log("items here", items);
-  // console.log("companies here", companies);
 
   return (
     <ItemContext.Provider
@@ -109,14 +94,11 @@ export const ItemProvider = ({ children }) => {
         companyProducts,
         setCompanyProducts,
         ItemNumber,
-        addItemNumber,
         addToCart,
         cart,
         setCart,
         company,
         setCompany,
-        buttonPhrase,
-        setButtonPhrase,
         orderHistory,
         setOrderHistory,
         error,
